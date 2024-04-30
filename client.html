@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Upload</title>
+</head>
+<body>
+    <ul>
+        <li>Black = background</li>
+        <li>Red = car</li>
+        <li>Green = cat</li>
+        <li>Blue = horse</li>
+    </ul>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" id="imageFile" name="file" accept="image/*"/>
+        <input type="submit" value="Upload"/>
+    </form>
+    <div id="result"></div>
+    <img id="imagePreview" src="#" alt="Image Preview" style="display:none;"/>
+
+    <script>
+        function readURL(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                
+                reader.onload = function (e) {
+                    document.getElementById('imagePreview').src = e.target.result;
+                    document.getElementById('imagePreview').style.display = 'block';
+                }
+                
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        document.getElementById('imageFile').addEventListener('change', function(){
+            readURL(this);
+        });
+
+        document.getElementById('uploadForm').onsubmit = function(event) {
+            event.preventDefault();
+            var formData = new FormData();
+            formData.append('file', document.getElementById('imageFile').files[0]);
+
+            fetch('http://127.0.0.1:5000/predict', { method: 'POST', body: formData })
+                .then(response => response.blob())
+                .then(blob => {
+                    var url = window.URL.createObjectURL(blob);
+                    document.getElementById('imagePreview').src = url;
+                    document.getElementById('imagePreview').style.display = 'block';
+                    document.getElementById('result').style.display = 'none';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('result').textContent = 'Failed to load image.';
+                    document.getElementById('result').style.display = 'block';
+                    document.getElementById('imagePreview').style.display = 'none';
+                });
+        };
+    </script>
+</body>
+</html>
